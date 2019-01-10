@@ -132,6 +132,7 @@ public class MainActivity extends Activity {
     public void btn2_Click(View view) {
         Intent intent = new Intent(this, xService.class);
         stopService(intent);
+        PrintLog("Stopped server");
     }
 
     private boolean isSvcRunning(Class<?> serviceClass) {

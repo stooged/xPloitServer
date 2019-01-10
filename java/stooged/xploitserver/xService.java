@@ -53,16 +53,16 @@ public class xService extends IntentService {
         webServer = new Server(8080);
         try {
             webServer.start();
-            Utils.SaveSetting(this,"HOSTADDR" ,"http://" + LocIp + ":8080/");
-            updateStatus("http://" + LocIp + ":8080/");
+            Utils.SaveSetting(this,"HOSTADDR" ,"http://" + LocIp + ":8080/index.html");
+            updateStatus("http://" + LocIp + ":8080/index.html");
         } catch (IOException e) {
             e.printStackTrace();
             try {
                 webServer = null;
                 webServer = new Server(9090);
                 webServer.start();
-                Utils.SaveSetting(this,"HOSTADDR" , "http://" + LocIp + ":9090/");
-                updateStatus("http://" + LocIp + ":9090/");
+                Utils.SaveSetting(this,"HOSTADDR" , "http://" + LocIp + ":9090/index.html");
+                updateStatus("http://" + LocIp + ":9090/index.html");
             }
             catch (IOException ignored)
             {
