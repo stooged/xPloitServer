@@ -49,6 +49,7 @@ public class Server extends NanoHTTPD {
         if (uri.indexOf('?') >= 0) {
             uri = uri.substring(0, uri.indexOf('?'));
         }
+
         File f = new File(Environment.getExternalStorageDirectory().toString() + "/xPloitServer/" + uri);
         if (uri.toLowerCase().contains(f.getName().toLowerCase()))
         {

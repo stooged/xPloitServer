@@ -2,11 +2,11 @@ package stooged.xploitserver;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -26,6 +26,8 @@ import java.util.zip.ZipInputStream;
 public class MainActivity extends Activity {
 
     TextView text1, txtlog;
+    boolean stopAction = false;
+    boolean startAction = false;
 
     @Override
     protected void onDestroy() {
@@ -48,22 +50,40 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_main);
 
-        text1 = findViewById(R.id.text1);
-        txtlog = findViewById(R.id.txtlog);
-        txtlog.setMovementMethod(new ScrollingMovementMethod());
 
-        if (isSvcRunning(xService.class))
-        {
-            text1.setText(Utils.GetSetting(this,"HOSTADDR", "Start server"));
+        if (Utils.GetSetting(this,"HASINIT",false)) {
+            Bundle extras = getIntent().getExtras();
+            if (extras != null) {
+                String mAction = extras.getString("Action");
+
+                if (mAction != null && mAction.equals("Stop")) {
+                    stopAction = true;
+                } else if (mAction != null && mAction.equals("Start")) {
+                    startAction = true;
+                }
+            }
         }
-        else
-        {
-            text1.setText("Start server");
+
+
+        if (Utils.isSvcRunning(this, xService.class)) {
+            if (stopAction) {
+                Intent intent = new Intent(this, xService.class);
+                stopService(intent);
+                finish();
+                return;
+            }
+        } else {
+            if (startAction) {
+                Intent intent = new Intent(this, xService.class);
+                startService(intent);
+                finish();
+                return;
+            }
         }
 
-        if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.LOLLIPOP_MR1) {
+
+        if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
             SetPermissions();
         }
         else {
@@ -73,7 +93,7 @@ public class MainActivity extends Activity {
 
     @TargetApi(23)
     private void SetPermissions() {
-        String[] perms = {"android.permission.INTERNET", "android.permission.ACCESS_WIFI_STATE", "android.permission.ACCESS_NETWORK_STATE", "android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"};
+        String[] perms = {"android.permission.INTERNET", "android.permission.ACCESS_WIFI_STATE", "android.permission.ACCESS_NETWORK_STATE", "android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.FOREGROUND_SERVICE"};
         int permsRequestCode = 200;
         requestPermissions(perms, permsRequestCode);
     }
@@ -88,6 +108,23 @@ public class MainActivity extends Activity {
 
     private void initApp()
     {
+        setContentView(R.layout.activity_main);
+        text1 = findViewById(R.id.text1);
+        txtlog = findViewById(R.id.txtlog);
+        txtlog.setMovementMethod(new ScrollingMovementMethod());
+
+        Utils.SaveSetting(getBaseContext(),"HASINIT",true);
+
+        if (Utils.isSvcRunning(this, xService.class)) {
+            text1.setText(Utils.GetSetting(this, "HOSTADDR", "Start server"));
+        } else {
+            text1.setText("Start server");
+        }
+
+
+        PrintLog("WWW Folder: " + Environment.getExternalStorageDirectory().toString() + "/xPloitServer/");
+
+
         new Thread(new Runnable() {
             public void run() {
                 File PayloadDir = new File(Environment.getExternalStorageDirectory().toString() + "/xPloitServer/");
@@ -124,6 +161,7 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+
     public void btn1_Click(View view) {
         Intent intent = new Intent(this, xService.class);
         startService(intent);
@@ -133,17 +171,10 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, xService.class);
         stopService(intent);
         PrintLog("Stopped server");
+        text1.setTextColor(0xFF33b5e5);
+        text1.setText("Start server");
     }
 
-    private boolean isSvcRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     private BroadcastReceiver bReceiver = new BroadcastReceiver(){
         @Override
@@ -223,4 +254,7 @@ public class MainActivity extends Activity {
             }
         });
     }
+
 }
+
+

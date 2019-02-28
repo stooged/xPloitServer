@@ -1,5 +1,7 @@
 package stooged.xploitserver;
 
+import android.app.ActivityManager;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.widget.Toast;
@@ -10,6 +12,8 @@ import java.net.SocketException;
 import java.util.Enumeration;
 
 public class Utils {
+
+
 
     public static String getIp() {
         try {
@@ -43,6 +47,20 @@ public class Utils {
         editor.apply();
     }
 
+    public static void SaveSetting(Context context, String sKey, boolean bValue)
+    {
+        SharedPreferences sharedPref = context.getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(sKey, bValue);
+        editor.apply();
+    }
+
+    public static boolean GetSetting(Context context, String sKey, boolean bDefault)
+    {
+        SharedPreferences sharedPref = context.getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        return sharedPref.getBoolean(sKey, bDefault);
+    }
+
     public static String GetSetting(Context context, String sKey, String sDefault)
     {
         SharedPreferences sharedPref = context.getSharedPreferences("Settings", Context.MODE_PRIVATE);
@@ -60,5 +78,19 @@ public class Utils {
         Toast.makeText(mContext, msg, duration).show();
     }
 
+    public static void deleteNotification(Context mContext) {
+        NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
+    }
+
+    public static boolean isSvcRunning(Context mContext, Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }
